@@ -44,6 +44,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(GCC_CPU ${CMAKE_SYSTEM_PROCESSOR})
 string(REPLACE "cortex-m85" "cortex-m55" GCC_CPU ${GCC_CPU})
 
+set(GCC_CPU "cortex-m0")
+
 # Compile options
 add_compile_options(
   -mcpu=${GCC_CPU} -mthumb "$<$<CONFIG:DEBUG>:-gdwarf-3>"
@@ -84,6 +86,8 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "cortex-m4(\\+|$)"
 else()
   set(FLOAT soft)
 endif()
+
+set(FLOAT soft)
 
 if(FLOAT)
   add_compile_options(-mfloat-abi=${FLOAT})

@@ -89,7 +89,7 @@ ethos_u_base_rev="24.08"
 # tosa reference model
 tosa_reference_model_url="https://review.mlplatform.org/tosa/reference_model"
 tosa_reference_model_rev="f9ea4ab7da19318fe36b1c34d68a3e40fd6e56c5"
- 
+
 ########
 ### Mandatory user args
 ########
@@ -120,7 +120,7 @@ function setup_fvp() {
     if [[ "${OS}" != "Linux" ]]; then
         echo "[${FUNCNAME[0]}] Warning: FVP only supported with Linux OS, skipping FVP setup..."
         echo "[${FUNCNAME[0]}] Warning: For MacOS, using https://github.com/Arm-Examples/FVPs-on-Mac is recommended."
-        echo "[${FUNCNAME[0]}] Warning:   Follow the instructions and make sure the path is set correctly." 
+        echo "[${FUNCNAME[0]}] Warning:   Follow the instructions and make sure the path is set correctly."
         return 1
     fi
 
@@ -316,7 +316,7 @@ setup_tosa_reference_model
 setup_vela
 
 # Setup FVP
-setup_fvp
+#setup_fvp
 
 echo "[main] update path by doing 'source ${setup_path_script}'"
 

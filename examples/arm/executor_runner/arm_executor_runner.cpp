@@ -22,6 +22,14 @@
 
 #include "arm_perf_monitor.h"
 
+#include <hardware/gpio.h>
+#include <hardware/uart.h>
+#include <pico/stdio_usb.h>
+#include <pico/time.h>
+#include <stdio.h>
+
+const uint LED_PIN = 25;
+
 #ifdef SEMIHOSTING
 
 /**
@@ -37,7 +45,7 @@
  * files/memory
  */
 
-const size_t input_file_allocation_pool_size = 60 * 1024 * 1024;
+const size_t input_file_allocation_pool_size = 1 * 1024 * 1024;
 unsigned char __attribute__((
     section("input_data_sec"),
     aligned(16))) input_file_allocation_pool[input_file_allocation_pool_size];
@@ -85,7 +93,7 @@ using executorch::runtime::TensorInfo;
  * availible memory.
  */
 #ifndef ET_ARM_BAREMETAL_METHOD_ALLOCATOR_POOL_SIZE
-#define ET_ARM_BAREMETAL_METHOD_ALLOCATOR_POOL_SIZE (20 * 1024 * 1024)
+#define ET_ARM_BAREMETAL_METHOD_ALLOCATOR_POOL_SIZE (1024*1)
 #endif
 const size_t method_allocation_pool_size =
     ET_ARM_BAREMETAL_METHOD_ALLOCATOR_POOL_SIZE;
@@ -100,7 +108,7 @@ unsigned char __attribute__((
  * a better fit
  */
 #ifndef ET_ARM_BAREMETAL_TEMP_ALLOCATOR_POOL_SIZE
-#define ET_ARM_BAREMETAL_TEMP_ALLOCATOR_POOL_SIZE (1 * 1024 * 1024)
+#define ET_ARM_BAREMETAL_TEMP_ALLOCATOR_POOL_SIZE (1024*1)
 #endif
 const size_t temp_allocation_pool_size =
     ET_ARM_BAREMETAL_TEMP_ALLOCATOR_POOL_SIZE;
@@ -304,6 +312,20 @@ std::pair<char*, size_t> read_binary_file(
 } // namespace
 
 int main(int argc, const char* argv[]) {
+
+  stdio_usb_init();
+
+  gpio_init(LED_PIN);
+  gpio_set_dir(LED_PIN, GPIO_OUT);
+  uint8_t led_count = 0;
+  // blink LED 5 times
+  while (led_count < 5) {
+    sleep_ms(1000);
+    gpio_put(LED_PIN, !gpio_get(LED_PIN));
+    ET_LOG(Info, "BLINK");
+    led_count++;
+  }
+
 #ifdef SEMIHOSTING
   ET_LOG(Info, "Running executor with parameter:");
   if (argc < 7) {

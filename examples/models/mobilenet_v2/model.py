@@ -34,9 +34,9 @@ class MV2UntrainedModel(EagerModelBase):
         pass
 
     def get_eager_model(self) -> torch.nn.Module:
-        mv2 = mobilenet_v2()
+        mv2 = mobilenet_v2(width_mult=0.05, num_classes=2)
         return mv2
 
     def get_example_inputs(self):
-        tensor_size = (1, 3, 224, 224)
+        tensor_size = (1, 3, 96, 96)
         return (torch.randn(tensor_size),)

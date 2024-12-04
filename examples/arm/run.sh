@@ -26,7 +26,7 @@ target="ethos-u55-128"
 output_folder_set=false
 output_folder="."
 build_only=false
-portable_kernels="aten::_softmax.out"
+portable_kernels="aten::_softmax.out,aten::addmm.out,aten::permute_copy.out,aten::add.out"
 
 help() {
     echo "Usage: $(basename $0) [options]"
@@ -198,24 +198,24 @@ function build_executorch_runner() {
 	local target_board=corstone-320
     fi
     cd ${script_dir}/executor_runner
-    cmake -DCMAKE_TOOLCHAIN_FILE=${toolchain_cmake}     \
-	  -DTARGET_CPU=${target_cpu}                    \
-	  -DTARGET_BOARD=${target_board}                \
-	  -DETHOSU_TARGET_NPU_CONFIG=${target}          \
-	  -B ${executor_runner_path}/cmake-out          \
-	  -DETHOS_SDK_PATH:PATH=${ethos_u_root_dir}     \
+    cmake -B ${executor_runner_path}/cmake-out          \
 	  -DET_DIR_PATH:PATH=${et_root_dir}             \
 	  -DET_BUILD_DIR_PATH:PATH=${et_build_dir}      \
 	  -DET_PTE_FILE_PATH:PATH="${pte}"              \
 	  -DPYTHON_EXECUTABLE=$(which python3)
+
+    # print all params
+    echo "cmake -CMAKE_TOOLCHAIN_FILE=${toolchain_cmake} -DTARGET_CPU=${target_cpu} -DTARGET_BOARD=${target_board} -DETHOSU_TARGET_NPU_CONFIG=${target} -B ${executor_runner_path}/cmake-out -DETHOS_SDK_PATH:PATH=${ethos_u_root_dir} -DET_DIR_PATH:PATH=${et_root_dir} -DET_BUILD_DIR_PATH:PATH=${et_build_dir} -DET_PTE_FILE_PATH:PATH=${pte} -DPYTHON_EXECUTABLE=$(which python3)"
     echo "[${FUNCNAME[0]}] Configured CMAKE"
 
     cmake --build ${executor_runner_path}/cmake-out --parallel -- arm_executor_runner
+    # print the command
+    echo "cmake --build ${executor_runner_path}/cmake-out --parallel -- arm_executor_runner"
     echo "[${FUNCNAME[0]}] Generated baremetal elf file:"
     find ${executor_runner_path}/cmake-out -name "arm_executor_runner"
-    echo "executable_text: $(find ${executor_runner_path}/cmake-out -name arm_executor_runner -exec size {} \; | grep -v filename | awk '{print $1}') bytes"
-    echo "executable_data: $(find ${executor_runner_path}/cmake-out -name arm_executor_runner -exec size {} \; | grep -v filename | awk '{print $2}') bytes"
-    echo "executable_bss:  $(find ${executor_runner_path}/cmake-out -name arm_executor_runner -exec size {} \; | grep -v filename | awk '{print $3}') bytes"
+    echo "executable_text: $(find ${executor_runner_path}/cmake-out -name arm_executor_runner -exec arm-none-eabi-size {} \; | grep -v filename | awk '{print $1}') bytes"
+    echo "executable_data: $(find ${executor_runner_path}/cmake-out -name arm_executor_runner -exec arm-none-eabi-size {} \; | grep -v filename | awk '{print $2}') bytes"
+    echo "executable_bss:  $(find ${executor_runner_path}/cmake-out -name arm_executor_runner -exec arm-none-eabi-size {} \; | grep -v filename | awk '{print $3}') bytes"
 }
 
 # Execute the executor_runner on FVP Simulator
@@ -265,8 +265,8 @@ function run_fvp() {
 source ${root_dir}/setup_path.sh
 
 # basic checks before we get started
-hash ${fvp_model} \
-    || { echo "Could not find ${fvp_model} on PATH, ${_setup_msg}"; exit 1; }
+# hash ${fvp_model} \
+#     || { echo "Could not find ${fvp_model} on PATH, ${_setup_msg}"; exit 1; }
 
 hash arm-none-eabi-gcc \
     || { echo "Could not find arm baremetal toolchain on PATH, ${_setup_msg}"; exit 1; }
@@ -297,7 +297,7 @@ for i in "${!test_model[@]}"; do
     printf "Running e2e flow for model '%s' with flags '%s'\n" "${test_model[i]}" "${model_compiler_flags[i]}"
     echo "--------------------------------------------------------------------------------"
     pte=$(generate_pte_file "${test_model[i]}" "${model_compiler_flags[i]}")
-    stat --printf="Generated pte_data_size: %s bytes\npte_file:%n\n" ${pte}
+    #stat --printf="Generated pte_data_size: %s bytes\npte_file:%n\n" ${pte}
     if [[ ${target} == *"TOSA"*  ]]; then
         echo "Build for ${target} skip generating .elf and running"
     else

@@ -1,5 +1,88 @@
 # ExecuTorch
 
+To reproduce:
+
+Install everything needed:
+```
+sh install_requirements.sh #for flatc issue
+cd examples/arm
+./setup.sh --i-agree-to-the-contained-eula build-dir
+```
+Softmax builds and runs normally
+```
+cd examples/arm
+./run.sh --build_only --scratch-dir=build-dir --model_name=softmax --aot_arm_compiler_flags=""
+
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:386] Model in 200014B0
+I [executorch:arm_executor_runner.cpp:388] Model PTE file loaded. Size: 960 bytes.
+I [executorch:arm_executor_runner.cpp:398] Model buffer loaded, has 1 methods
+I [executorch:arm_executor_runner.cpp:406] Running method forward
+I [executorch:arm_executor_runner.cpp:417] Setup Method allocator pool. Size: 1024 bytes.
+I [executorch:arm_executor_runner.cpp:434] Setting up planned buffer 0, size 32.
+I [executorch:arm_executor_runner.cpp:467] Method loaded.
+I [executorch:arm_executor_runner.cpp:469] Preparing inputs...
+I [executorch:arm_executor_runner.cpp:483] Input prepared.
+I [executorch:arm_executor_runner.cpp:485] Starting the model execution...
+I [executorch:arm_executor_runner.cpp:492] model_pte_loaded_size:     960 bytes.
+I [executorch:arm_executor_runner.cpp:506] method_allocator_used:     342 / 1024  free: 682 ( used: 33 % )
+I [executorch:arm_executor_runner.cpp:513] method_allocator_planned:  32 bytes
+I [executorch:arm_executor_runner.cpp:515] method_allocator_loaded:   290 bytes
+I [executorch:arm_executor_runner.cpp:516] method_allocator_input:    20 bytes
+I [executorch:arm_executor_runner.cpp:517] method_allocator_executor: 0 bytes
+I [executorch:arm_executor_runner.cpp:520] temp_allocator_used:       0 / 1024 free: 1024 ( used: 0 % )
+I [executorch:arm_executor_runner.cpp:536] Model executed successfully.
+I [executorch:arm_executor_runner.cpp:540] 1 outputs:
+Output[0][0]: 0.500000
+Output[0][1]: 0.500000
+Output[0][2]: 0.500000
+Output[0][3]: 0.500000
+I [executorch:arm_executor_runner.cpp:577] Program complete, exiting.
+I [executorch:arm_executor_runner.cpp:581]
+```
+Linear and add hang at Starting the model execution.
+```
+cd examples/arm
+./run.sh --build_only --scratch-dir=build-dir --model_name=linear --aot_arm_compiler_flags=""
+
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:386] Model in 200014B0 <
+I [executorch:arm_executor_runner.cpp:388] Model PTE file loaded. Size: 1596 bytes.
+I [executorch:arm_executor_runner.cpp:398] Model buffer loaded, has 1 methods
+I [executorch:arm_executor_runner.cpp:406] Running method forward
+I [executorch:arm_executor_runner.cpp:417] Setup Method allocator pool. Size: 1024 bytes.
+I [executorch:arm_executor_runner.cpp:434] Setting up planned buffer 0, size 144.
+I [executorch:arm_executor_runner.cpp:467] Method loaded.
+I [executorch:arm_executor_runner.cpp:469] Preparing inputs...
+I [executorch:arm_executor_runner.cpp:483] Input prepared.
+I [executorch:arm_executor_runner.cpp:485] Starting the model execution...
+```
+Quantized MobileNetv2 alpha 0.05 96x96x3 requires allocation of 1.45 Mb of RAM.
+```
+cd examples/arm
+./run.sh --build_only --scratch-dir=build-dir --model_name=mv2_untrained --aot_arm_compiler_flags="--quantize"
+
+I [executorch:arm_executor_runner.cpp:325] BLINK
+I [executorch:arm_executor_runner.cpp:386] Model in 200014B0 <
+I [executorch:arm_executor_runner.cpp:388] Model PTE file loaded. Size: 175008 bytes.
+I [executorch:arm_executor_runner.cpp:398] Model buffer loaded, has 1 methods
+I [executorch:arm_executor_runner.cpp:406] Running method forward
+I [executorch:arm_executor_runner.cpp:417] Setup Method allocator pool. Size: 1024 bytes.
+I [executorch:arm_executor_runner.cpp:434] Setting up planned buffer 0, size 1785600.
+E [executorch:memory_allocator.h:88] Memory allocation failed: 1785600B requested (adjusted for alignment), 1024B available
+E [executorch:memory_allocator.h:88] Memory allocation failed: 68208B requested (adjusted for alignment), 1024B available
+I [executorch:arm_executor_runner.cpp:459] Loading of method forward failed with status 0x21
+I [executorch:arm_executor_runner.cpp:467] Method loaded.
+I [executorch:arm_executor_runner.cpp:469] Preparing inputs...
+F [executorch:result.h:165] In function CheckOk(), assert failed: hasValue_
+```
+
 **ExecuTorch** is an end-to-end solution for enabling on-device inference
 capabilities across mobile and edge devices including wearables, embedded
 devices and microcontrollers. It is part of the PyTorch Edge ecosystem and
